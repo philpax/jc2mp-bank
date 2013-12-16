@@ -1,7 +1,7 @@
 class 'Bank'
 
 function Player:SteamId()
-    return self:GetSteamId().Id
+    return self:GetSteamId().id
 end
 
 function Bank:__init()
