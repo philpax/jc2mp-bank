@@ -10,6 +10,7 @@ function Bank:__init()
     Events:Subscribe( "PlayerChat", self, self.PlayerChat )
     Events:Subscribe( "PlayerMoneyChange", self, self.PlayerMoneyChange )
     Events:Subscribe( "PostTick", self, self.PostTick )
+    Events:Subscribe( "ModuleUnload", self, self.CommitChanges )
     Console:Subscribe( "bank", self, self.Console )
 
     -- Map of player money changes that need to be committed to the database
@@ -146,26 +147,30 @@ function Bank:PlayerChat( args )
 end
 
 function Bank:PostTick( args )
-    if self.timer:GetSeconds() > 30 then
-        local count = table.count(self.money_queue)
-        if count > 0 then
-            print( "Committing " .. tostring(count) .. " changes to db" )
+    if self.timer:GetSeconds() >= 30 then
+        self:CommitChanges()
+        self.timer:Restart()
+    end
+end
 
-            local transaction = SQL:Transaction()
-            do
-                for k, v in pairs(self.money_queue) do
-                    local cmd = SQL:Command( 
-                        "insert or replace into bank_players (steamid, money) values (?, ?)" )
-                    cmd:Bind( 1, k )
-                    cmd:Bind( 2, v )
-                    cmd:Execute()
-                end
+function Bank:CommitChanges( )
+    local count = table.count(self.money_queue)
+    if count > 0 then
+        print( "Committing " .. tostring(count) .. " changes to db" )
+
+        local transaction = SQL:Transaction()
+        do
+            for k, v in pairs(self.money_queue) do
+                local cmd = SQL:Command( 
+                    "insert or replace into bank_players (steamid, money) values (?, ?)" )
+                cmd:Bind( 1, k )
+                cmd:Bind( 2, v )
+                cmd:Execute()
             end
-            transaction:Commit()
-
-            self.timer:Restart()
-            self.money_queue = {}
         end
+        transaction:Commit()
+
+        self.money_queue = {}
     end
 end
 
