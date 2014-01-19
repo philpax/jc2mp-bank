@@ -69,7 +69,7 @@ function Bank:WindowClosed( args )
 end
 
 function Bank:ModulesLoad()
-    Events:FireRegisteredEvent( "HelpAddItem",
+    Events:Fire( "HelpAddItem",
         {
             name = "Bank",
             text = 
@@ -80,7 +80,7 @@ function Bank:ModulesLoad()
 end
 
 function Bank:ModuleUnload()
-    Events:FireRegisteredEvent( "HelpRemoveItem",
+    Events:Fire( "HelpRemoveItem",
         {
             name = "Bank"
         } )
